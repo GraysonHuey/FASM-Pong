@@ -151,11 +151,11 @@ _start:
 section '.data' writeable
     title: db "FASM Pong", 0
 
-    paddleY: dq 50
+    paddleY: dq 150
 
     ballX: dq 250
     ballY: dq 250
-    ballXVel: dq 2
-    ballYVel: dq 2
+    ballXVel: dq 7
+    ballYVel: dq 7
 
 section '.note.GNU-stack'
