@@ -10,7 +10,7 @@ extrn WindowShouldClose
 extrn BeginDrawing
 extrn EndDrawing
 extrn DrawRectangle
-extrn DrawCircle
+extrn DrawText
 extrn ClearBackground
 extrn IsKeyDown
 extrn _exit
@@ -137,11 +137,29 @@ _start:
     call EndDrawing
     jmp .checkUp
 
-; Currently we crash with exit code 1 if the player loses. TODO: Implement lose screen
 .lose:
-    call CloseWindow
-    mov rdi, 1
-    call _exit
+    mov rdi, 0x09423E32
+    call ClearBackground
+
+    mov rdi, loseMsg
+    mov rsi, 290
+    mov rdx, 275
+    mov rcx, 50
+    mov r8, 0xFFFFFFFF
+    call DrawText
+    call EndDrawing
+
+    jmp .sleep5sec
+
+.sleep5sec:
+    mov DWORD [tv_sec], 5
+    mov DWORD [tv_nsec], 0
+    mov rax, 35
+    mov rdi, timeval
+    mov rsi, timeval
+    syscall
+
+    jmp .over
 
 .over:
     call CloseWindow
@@ -150,12 +168,17 @@ _start:
 
 section '.data' writeable
     title: db "FASM Pong", 0
+    loseMsg: db "You lost!", 0
 
     paddleY: dq 150
 
     ballX: dq 250
     ballY: dq 250
-    ballXVel: dq 7
-    ballYVel: dq 7
+    ballXVel: dq 5
+    ballYVel: dq 5
+
+    timeval:
+      tv_sec: dd 0
+      tv_nsec: dd 0
 
 section '.note.GNU-stack'
