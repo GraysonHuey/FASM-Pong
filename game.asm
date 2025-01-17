@@ -151,6 +151,17 @@ _start:
     mov rax, [ballXVel]
     neg rax
     mov [ballXVel], rax
+    inc QWORD [bounces]
+    jmp .addSpeed
+
+.addSpeed:
+    mov rax, [bounces]
+    mov rbx, 5
+    div rax
+    cmp rdx, 0
+    jne .move
+    inc QWORD [ballXVel]
+    inc QWORD [ballYVel]
     jmp .move
 
 .move:
@@ -205,8 +216,10 @@ section '.data' writeable
 
     ballX: dq 250
     ballY: dq 250
-    ballXVel: dq 5
-    ballYVel: dq 5
+    ballXVel: dq 1
+    ballYVel: dq 1
+
+    bounces: dq 0
 
     timeval:
       tv_sec: dd 0
