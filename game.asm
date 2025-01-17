@@ -24,6 +24,36 @@ _start:
     mov rdi, 60
     call SetTargetFPS
 
+.titleScreen:
+    call BeginDrawing
+
+    call WindowShouldClose
+    test rax, rax
+    jnz .titleScreen
+
+    mov rdi, 0x09423E32
+    call ClearBackground
+
+    mov rdi, title
+    mov rsi, 315
+    mov rdx, 25
+    mov rcx, 24
+    mov r8, 0x00FF6732
+    call DrawText
+
+    mov rdi, subtitleText
+    mov rsi, 315, 50
+    mov rcx, 20
+    mov r8, 0x00FF6732
+    call DrawText
+
+    mov rdi, 257 ; Enter key
+    call IsKeyDown
+    cmp rax, 1
+    je .game
+    call EndDrawing
+    jmp .titleScreen
+
 .checkUp:
     mov rdi, 265
     call IsKeyDown
@@ -41,17 +71,17 @@ _start:
     mov rdi, 264
     call IsKeyDown
     cmp rax, 1
-    jne .again
+    jne .game
 
     mov rax, [paddleY]
     add rax, 5
     cmp rax, 450
-    je .again
+    je .game
     mov [paddleY], rax
     xor rax, rax
-    jmp .again
+    jmp .game
 
-.again:
+.game:
     call WindowShouldClose
     test rax, rax
     jnz .over
@@ -168,6 +198,7 @@ _start:
 
 section '.data' writeable
     title: db "FASM Pong", 0
+    subtitleText: db, "Press enter to start!", 0
     loseMsg: db "You lost!", 0
 
     paddleY: dq 150
