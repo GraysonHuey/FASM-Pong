@@ -39,7 +39,7 @@ _start:
 
     mov rdi, subtitleText
     mov rsi, 315
-    mov rcx, 20
+    mov rcx, 50
     mov r8, 0xFFFFFFFF
     call DrawText
     call EndDrawing
