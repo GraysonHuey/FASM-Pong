@@ -156,8 +156,8 @@ _start:
 
 .addSpeed:
     mov rax, [bounces]
-    mov rbx, 5
-    div rax
+    mov rbx, [bouncesToSpeedUp]
+    div rbx
     cmp rdx, 0
     jne .move
     inc QWORD [ballXVel]
@@ -207,6 +207,7 @@ _start:
     mov rdi, 0
     call _exit
 
+
 section '.data' writeable
     title: db "FASM Pong", 0
     subtitleText: db "Press enter to start!", 0
@@ -220,6 +221,7 @@ section '.data' writeable
     ballYVel: dq 1
 
     bounces: dq 0
+    bouncesToSpeedUp: dq 3
 
     timeval:
       tv_sec: dd 0
