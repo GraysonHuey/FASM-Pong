@@ -27,10 +27,6 @@ _start:
 .titleScreen:
     call BeginDrawing
 
-    call WindowShouldClose
-    test rax, rax
-    jnz .titleScreen
-
     mov rdi, 0x09423E32
     call ClearBackground
 
@@ -38,20 +34,23 @@ _start:
     mov rsi, 315
     mov rdx, 25
     mov rcx, 24
-    mov r8, 0x00FF6732
+    mov r8, 0xFFFFFFFF
     call DrawText
 
     mov rdi, subtitleText
-    mov rsi, 315, 50
+    mov rsi, 315
     mov rcx, 20
-    mov r8, 0x00FF6732
+    mov r8, 0xFFFFFFFF
     call DrawText
+    call EndDrawing
 
+    call WindowShouldClose
+    cmp rax, 1
+    je .over
     mov rdi, 257 ; Enter key
     call IsKeyDown
     cmp rax, 1
     je .game
-    call EndDrawing
     jmp .titleScreen
 
 .checkUp:
@@ -209,7 +208,7 @@ _start:
 
 section '.data' writeable
     title: db "FASM Pong", 0
-    subtitleText: db, "Press enter to start!", 0
+    subtitleText: db "Press enter to start!", 0
     loseMsg: db "You lost!", 0
 
     paddleY: dq 150
