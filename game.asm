@@ -33,13 +33,14 @@ _start:
     mov rdi, title
     mov rsi, 315
     mov rdx, 25
-    mov rcx, 24
+    mov rcx, 32
     mov r8, 0xFFFFFFFF
     call DrawText
 
     mov rdi, subtitleText
-    mov rsi, 315
-    mov rcx, 50
+    mov rsi, 250
+    mov rdx, 125
+    mov rcx, 32
     mov r8, 0xFFFFFFFF
     call DrawText
     call EndDrawing
