@@ -104,13 +104,6 @@ _start:
     mov r8, 0xFFFFFFFF
     call DrawRectangle
 
-    mov rdi, scoreStr
-    mov rsi, 700
-    mov rdx, 25
-    mov rcx, 32
-    mov r8, 0xFFFFFFFF
-    call DrawText
-
     jmp .checkX
 
 .checkX:
@@ -230,8 +223,6 @@ section '.data' writeable
 
     bounces: dq 0
     bouncesToSpeedUp: dq 3
-
-    scoreStr: db "0000", 0
 
     timeval:
       tv_sec: dd 0
