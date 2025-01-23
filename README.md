@@ -17,7 +17,7 @@ Next, clone this repository and open it
 ```shell
 git clone https://github.com/GraysonHuey/FASM-Pong.git --depth 1 && cd FASM-Pong
 ```
-Before you try to run the game, make sure you install raylib
+Before you try to run the game, make sure you install [Raylib](https://github.com/raysan5/raylib "Raylib")
 ```shell
 git clone https://github.com/raysan5/raylib.git --depth 1
 ```
