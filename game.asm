@@ -13,6 +13,7 @@ extrn DrawRectangle
 extrn DrawText
 extrn ClearBackground
 extrn IsKeyDown
+extrn snprintf
 extrn _exit
 
 _start:
@@ -65,7 +66,7 @@ _start:
     je .checkDown
     sub rax, 5
     mov [paddleY], rax
-    xor rax, rax
+    jmp .game
 
 .checkDown:
     mov rdi, 264
@@ -76,9 +77,8 @@ _start:
     mov rax, [paddleY]
     add rax, 5
     cmp rax, 450
-    je .game
+    jge .game
     mov [paddleY], rax
-    xor rax, rax
     jmp .game
 
 .game:
@@ -103,6 +103,13 @@ _start:
     mov rcx, 15
     mov r8, 0xFFFFFFFF
     call DrawRectangle
+
+    mov rdi, scoreStr
+    mov rsi, 700
+    mov rdx, 25
+    mov rcx, 25
+    mov r8, 0xFFFFFFFF
+    call DrawText
 
     jmp .checkX
 
@@ -149,18 +156,24 @@ _start:
     cmp rax, rbx
     jg .move
 
+    inc QWORD [score]
+    mov rax, [score]
+    mov rdi, scoreStr
+    call dec2str
+
+    inc QWORD [bounces]
     mov rax, [ballXVel]
     neg rax
     mov [ballXVel], rax
-    inc QWORD [bounces]
     jmp .addSpeed
 
 .addSpeed:
     mov rax, [bounces]
     mov rbx, [bouncesToSpeedUp]
+    mov rdx, 0
     div rbx
-    cmp rdx, 0
-    jne .move
+    test rdx, rdx
+    jnz .move
     inc QWORD [ballXVel]
     inc QWORD [ballYVel]
     jmp .move
@@ -208,11 +221,42 @@ _start:
     mov rdi, 0
     call _exit
 
+dec2str:
+    push rbx
+    push rcx
+    push rdx
+
+    mov rbx, 10
+    mov rcx, 5
+
+.clear_buffer:
+    mov BYTE [rdi + rcx - 1], '0'
+    dec rcx
+    jnz .clear_buffer
+
+    mov rcx, 5
+    mov rbx, 10
+
+.convert_loop:
+    dec rcx
+    xor rdx, rdx
+    div rbx
+    add dl, '0'
+    mov [rdi + rcx], dl
+    test rax, rax
+    jnz .convert_loop
+
+    pop rdx
+    pop rcx
+    pop rbx
+    ret
 
 section '.data' writeable
     title: db "FASM Pong", 0
     subtitleText: db "Press enter to start!", 0
     loseMsg: db "You lost!", 0
+
+    scoreStr: db "00000", 0
 
     paddleY: dq 150
 
@@ -223,6 +267,7 @@ section '.data' writeable
 
     bounces: dq 0
     bouncesToSpeedUp: dq 3
+    score: dq 0
 
     timeval:
       tv_sec: dd 0
