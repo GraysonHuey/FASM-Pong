@@ -4,8 +4,8 @@ This project is not complete yet, so stay tuned for future updates!
 </br>
 </br>
 ## ⚠️ WARNING ⚠️
-This game was developed and tested on Ubuntu 22.04.1 (64-bit). Any 64-bit Debian-based systems will most likely work, but any attempts to run this game on any OS other than Ubuntu ***might not work***.</br></br>
-Please only try to play this game on a Linux machine. I know that this ***WILL NOT*** work on Windows. Also, make sure you use a 64-bit OS because this will ***NOT*** work on 32-bit.
+This game was developed and tested on Ubuntu 22.04.1 (64-bit). Any 64-bit Debian-based systems will most likely work, but any attempts to run this game on any OS other than Ubuntu 22.04.1 ***might not work***.</br></br>
+Please only try to play this game on a Linux machine. I know that this ***WILL NOT*** work on Windows (if you want to, you'll have to do some workarounds with WSL2). Also, make sure you use a 64-bit OS because this will ***NOT*** work on 32-bit.
 </br>
 </br>
 ## How to play!
