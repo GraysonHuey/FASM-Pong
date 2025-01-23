@@ -14,7 +14,7 @@ git clone https://github.com/GraysonHuey/FASM-Pong.git --depth 1 && cd FASM-Pong
 ```
 Before you try to run the game, make sure you install raylib
 ```shell
-git clone https://github.com/raysan5/raylib --depth 1
+git clone https://github.com/raysan5/raylib.git --depth 1
 ```
 Finally, compile and run the game! Using the command below will use the Makefile to compile the assembly file. You can also run './game' after you have compiled if you do not wish to recompile.
 ```shell
