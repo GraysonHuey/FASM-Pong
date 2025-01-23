@@ -3,7 +3,12 @@ FASM Pong is a very simple implementation of the classic game "Pong" but in x86_
 This project is not complete yet, so stay tuned for future updates!
 </br>
 </br>
-## How to install
+## ⚠️ WARNING ⚠️
+This game was developed and tested on Ubuntu 22.04.1 (64-bit). Any 64-bit Debian-based systems will most likely work, but any attempts to run this game on any OS other than Ubuntu ***might not work***.</br>
+Please only try to play this game on a Linux machine. I know that this WILL NOT work on Windows. Also, make sure you use a 64-bit OS. This will not work on 32-bit.
+</br>
+</br>
+## How to play!
 First, you need to install all of the required packages.
 ```shell
 sudo apt-get install fasm make binutils
