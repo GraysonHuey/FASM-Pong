@@ -38,7 +38,7 @@ _start:
     mov r8, 0xFFFFFFFF
     call DrawText
 
-    mov rdi, subtitleText
+    mov rdi, subtitle
     mov rsi, 250
     mov rdx, 125
     mov rcx, 32
@@ -52,11 +52,16 @@ _start:
     mov rdi, 257 ; Enter key
     call IsKeyDown
     cmp rax, 1
-    je .game
+    je .gameLoop
     jmp .titleScreen
 
-.checkUp:
-    mov rdi, 265
+.gameLoop:
+    call WindowShouldClose
+    test rax, rax
+    jnz .over
+
+    ; Handle paddle movement
+    mov rdi, 265 ; Up key
     call IsKeyDown
     cmp rax, 1
     jne .checkDown
@@ -66,30 +71,27 @@ _start:
     je .checkDown
     sub rax, 5
     mov [paddleY], rax
-    jmp .game
+    jmp .render
 
 .checkDown:
-    mov rdi, 264
+    mov rdi, 264 ; Down key
     call IsKeyDown
     cmp rax, 1
-    jne .game
+    jne .render
 
     mov rax, [paddleY]
     add rax, 5
     cmp rax, 450
-    jge .game
+    jge .render
     mov [paddleY], rax
-    jmp .game
 
-.game:
-    call WindowShouldClose
-    test rax, rax
-    jnz .over
+.render:
     call BeginDrawing
 
     mov rdi, 0x09423E32
     call ClearBackground
 
+    ; Draw paddle
     mov rdi, 5
     mov rsi, [paddleY]
     mov rdx, 20
@@ -97,6 +99,7 @@ _start:
     mov r8, 0xFFFFFFFF
     call DrawRectangle
 
+    ; Draw ball
     mov rdi, [ballX]
     mov rsi, [ballY]
     mov rdx, 15
@@ -104,6 +107,7 @@ _start:
     mov r8, 0xFFFFFFFF
     call DrawRectangle
 
+    ; Draw score
     mov rdi, scoreStr
     mov rsi, 700
     mov rdx, 25
@@ -111,29 +115,26 @@ _start:
     mov r8, 0xFFFFFFFF
     call DrawText
 
-    jmp .checkX
-
-.checkX:
+    ; Ball collision logic
     mov rax, [ballX]
     cmp rax, 785
     jge .invertXVel
     cmp rax, 0
     jle .lose
-    jmp .checkY
+    jmp .checkYCollision
 
-.checkY:
+.invertXVel:
+    mov rax, [ballXVel]
+    neg rax
+    mov [ballXVel], rax
+
+.checkYCollision:
     mov rax, [ballY]
     cmp rax, 585
     jge .invertYVel
     cmp rax, 0
     jle .invertYVel
     jmp .checkPaddle
-
-.invertXVel:
-    mov rax, [ballXVel]
-    neg rax
-    mov [ballXVel], rax
-    jmp .checkY
 
 .invertYVel:
     mov rax, [ballYVel]
@@ -144,41 +145,76 @@ _start:
 .checkPaddle:
     mov rax, [ballX]
     cmp rax, 5
-    jl .move
+    jl .updateBallPosition
     cmp rax, 25
-    jg .move
+    jg .updateBallPosition
 
     mov rax, [ballY]
     mov rbx, [paddleY]
     cmp rax, rbx
-    jl .move
+    jl .updateBallPosition
     add rbx, 150
     cmp rax, rbx
-    jg .move
+    jg .updateBallPosition
 
+    ; Ball hit paddle - determine which half
+    mov rax, [ballY]
+    mov rbx, [paddleY]
+    add rbx, 75     ; Calculate middle of paddle (paddleY + 75)
+
+    ; If ballY < middle of paddle, ball hit top half
+    cmp rax, rbx
+    jl .topHalfHit
+
+    ; Ball hit bottom half
+    mov QWORD [ballYVel], 3  ; Force downward velocity
+    jmp .paddleHitCommon
+
+.topHalfHit:
+    mov QWORD [ballYVel], -3 ; Force upward velocity
+
+.paddleHitCommon:
+    ; Increment score and reverse X velocity
     inc QWORD [score]
     mov rax, [score]
     mov rdi, scoreStr
     call dec2str
 
-    inc QWORD [bounces]
+    ; Reverse X direction
     mov rax, [ballXVel]
     neg rax
     mov [ballXVel], rax
-    jmp .addSpeed
 
-.addSpeed:
+    ; Handle speed increase
+    inc QWORD [bounces]
     mov rax, [bounces]
     mov rbx, [bouncesToSpeedUp]
     mov rdx, 0
     div rbx
     test rdx, rdx
-    jnz .move
-    inc QWORD [ballXVel]
-    inc QWORD [ballYVel]
-    jmp .move
+    jnz .updateBallPosition
 
-.move:
+    ; Increase speed after certain number of bounces
+    mov rax, [ballXVel]
+    cmp rax, 0       ; Check if velocity is positive or negative
+    jl .negativeXVel
+    inc QWORD [ballXVel]
+    jmp .checkYVelSign
+
+.negativeXVel:
+    dec QWORD [ballXVel]
+
+.checkYVelSign:
+    mov rax, [ballYVel]
+    cmp rax, 0
+    jl .negativeYVel
+    inc QWORD [ballYVel]
+    jmp .updateBallPosition
+
+.negativeYVel:
+    dec QWORD [ballYVel]
+
+.updateBallPosition:
     mov rax, [ballX]
     add rax, [ballXVel]
     mov [ballX], rax
@@ -186,35 +222,83 @@ _start:
     mov rax, [ballY]
     add rax, [ballYVel]
     mov [ballY], rax
-    jmp .doneMove
 
-.doneMove:
     call EndDrawing
-    jmp .checkUp
+    jmp .gameLoop
 
 .lose:
+    ; Convert score to string for display on lose screen
+    mov rax, [score]
+    mov rdi, finalScoreStr
+    call dec2str
+
+.loseLoop:
+    call BeginDrawing
+
+    ; Clear the screen completely
     mov rdi, 0x09423E32
     call ClearBackground
 
+    ; Display "You lose!" message
     mov rdi, loseMsg
     mov rsi, 290
-    mov rdx, 275
+    mov rdx, 235
     mov rcx, 50
     mov r8, 0xFFFFFFFF
     call DrawText
+
+    ; Display final score
+    mov rdi, scorePrefix
+    mov rsi, 300
+    mov rdx, 285
+    mov rcx, 30
+    mov r8, 0xFFFFFFFF
+    call DrawText
+
+    mov rdi, finalScoreStr
+    mov rsi, 410
+    mov rdx, 285
+    mov rcx, 30
+    mov r8, 0xFFFFFFFF
+    call DrawText
+
+    ; Display replay instructions
+    mov rdi, replay
+    mov rsi, 125
+    mov rdx, 335
+    mov rcx, 25
+    mov r8, 0xFFFFFFFF
+    call DrawText
+
     call EndDrawing
 
-    jmp .sleep5sec
+    ; Check for escape key (quit)
+    mov rdi, 256 ; Escape
+    call IsKeyDown
+    cmp rax, 1
+    je .over
 
-.sleep5sec:
-    mov DWORD [tv_sec], 5
-    mov DWORD [tv_nsec], 0
-    mov rax, 35
-    mov rdi, timeval
-    mov rsi, timeval
-    syscall
+    ; Check for enter key (restart)
+    mov rdi, 257 ; Enter
+    call IsKeyDown
+    cmp rax, 1
+    jne .loseLoop
 
-    jmp .over
+    ; Reset game state
+    mov QWORD [ballX], 250
+    mov QWORD [ballY], 250
+    mov QWORD [ballXVel], 3
+    mov QWORD [ballYVel], 3
+    mov QWORD [paddleY], 150
+    mov QWORD [bounces], 0
+    mov QWORD [score], 0
+
+    ; Reset score display
+    mov rax, 0
+    mov rdi, scoreStr
+    call dec2str
+
+    jmp .gameLoop
 
 .over:
     call CloseWindow
@@ -253,24 +337,23 @@ dec2str:
 
 section '.data' writeable
     title: db "FASM Pong", 0
-    subtitleText: db "Press enter to start!", 0
-    loseMsg: db "You lost!", 0
+    subtitle: db "Press enter to start!", 0
+    loseMsg: db "You lose!", 0
+    scorePrefix: db "Score: ", 0
+    replay: db "Press enter to play again or escape to quit", 0
 
     scoreStr: db "00000", 0
+    finalScoreStr: db "00000", 0
 
     paddleY: dq 150
 
     ballX: dq 250
     ballY: dq 250
-    ballXVel: dq 1
-    ballYVel: dq 1
+    ballXVel: dq 3
+    ballYVel: dq 3
 
     bounces: dq 0
     bouncesToSpeedUp: dq 3
     score: dq 0
-
-    timeval:
-      tv_sec: dd 0
-      tv_nsec: dd 0
 
 section '.note.GNU-stack'
