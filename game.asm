@@ -30,16 +30,16 @@ _start:
     ; Title screen rendering loop
     call BeginDrawing
 
-    ; Set background color (dark green)
-    mov rdi, 0x09423E32
+    ; Set background color (dark purple)
+    mov rdi, 0xFF630047
     call ClearBackground
 
     ; Draw game title
     mov rdi, title
-    mov rsi, 315      ; x position
-    mov rdx, 25       ; y position
-    mov rcx, 32       ; font size
-    mov r8, 0xFFFFFFFF  ; white color
+    mov rsi, 315        ; x position
+    mov rdx, 25         ; y position
+    mov rcx, 32         ; font size
+    mov r8, 0xFF6DD9677 ; blue color
     call DrawText
 
     ; Draw instructions
@@ -47,7 +47,7 @@ _start:
     mov rsi, 250
     mov rdx, 125
     mov rcx, 32
-    mov r8, 0xFFFFFFFF
+    mov r8, 0xFF6DD9677
     call DrawText
     call EndDrawing
 
@@ -103,7 +103,7 @@ _start:
     call BeginDrawing
 
     ; Clear screen with background color
-    mov rdi, 0x09423E32
+    mov rdi, 0xFF630047
     call ClearBackground
 
     ; Draw paddle (20x150 rectangle)
@@ -111,7 +111,7 @@ _start:
     mov rsi, [paddleY]   ; y position
     mov rdx, 20          ; width
     mov rcx, 150         ; height
-    mov r8, 0xFFFFFFFF   ; white color
+    mov r8, 0xFFB070B3   ; violet color
     call DrawRectangle
 
     ; Draw ball (15x15 square)
@@ -119,15 +119,42 @@ _start:
     mov rsi, [ballY]
     mov rdx, 15
     mov rcx, 15
-    mov r8, 0xFFFFFFFF
+    mov r8, 0xFFB070B3 ; Keep in mind that Raylib colors are little endian (so use ABGR instead of RGBA)
     call DrawRectangle
+
+    ; Draw score label
+    mov rdi, scoreLabel
+    mov rsi, 615
+    mov rdx, 25
+    mov rcx, 25
+    mov r8, 0xFF6DD9677
+    call DrawText
 
     ; Draw score counter
     mov rdi, scoreStr
     mov rsi, 700
     mov rdx, 25
     mov rcx, 25
-    mov r8, 0xFFFFFFFF
+    mov r8, 0xFF6DD9677
+    call DrawText
+
+    ; Draw difficulty label
+    mov rdi, speedLabel
+    mov rsi, 577
+    mov rdx, 50
+    mov rcx, 25
+    mov r8, 0xFF6DD9677
+    call DrawText
+
+    ; Draw difficulty counter
+    mov rax, [speed]
+    mov rdi, speedStr
+    call dec2str
+    mov rdi, speedStr
+    mov rsi, 700
+    mov rdx, 50
+    mov rcx, 25
+    mov r8, 0xFF6DD9677
     call DrawText
 
     ; --- Ball collision logic ---
@@ -216,6 +243,8 @@ _start:
     test rdx, rdx               ; Check if division remainder is zero
     jnz .updateBallPosition
 
+    inc QWORD [speed]
+
     ; Increase X velocity based on direction
     mov rax, [ballXVel]
     cmp rax, 0
@@ -261,7 +290,7 @@ _start:
     call BeginDrawing
 
     ; Clear screen
-    mov rdi, 0x09423E32
+    mov rdi, 0xFF630047
     call ClearBackground
 
     ; Draw "You lose!" message
@@ -269,7 +298,7 @@ _start:
     mov rsi, 290
     mov rdx, 235
     mov rcx, 50
-    mov r8, 0xFFFFFFFF
+    mov r8, 0xFF6DD9677
     call DrawText
 
     ; Display final score
@@ -277,7 +306,7 @@ _start:
     mov rsi, 300
     mov rdx, 285
     mov rcx, 30
-    mov r8, 0xFFFFFFFF
+    mov r8, 0xFF6DD9677
     call DrawText
 
     mov rdi, finalScoreStr
@@ -292,7 +321,7 @@ _start:
     mov rsi, 125
     mov rdx, 335
     mov rcx, 25
-    mov r8, 0xFFFFFFFF
+    mov r8, 0xFF6DD9677
     call DrawText
 
     call EndDrawing
@@ -317,6 +346,7 @@ _start:
     mov QWORD [paddleY], 150
     mov QWORD [bounces], 0
     mov QWORD [score], 0
+    mov QWORd [speed], 1
 
     ; Reset score display
     mov rax, 0
@@ -373,18 +403,23 @@ section '.data' writeable
     scorePrefix: db "Score: ", 0
     replay: db "Press enter to play again or escape to quit", 0
 
-    scoreStr: db "00000", 0      ; Current score display buffer
-    finalScoreStr: db "00000", 0 ; Final score display buffer
+    scoreLabel: db "Score: ", 0      ; Label for current score
+    scoreStr: db "00000", 0          ; Current score display buffer
+    finalScoreStr: db "00000", 0     ; Final score display buffer
 
-    paddleY: dq 150              ; Paddle Y position (X is fixed at left side)
+    speedLabel: db "Difficulty: ", 0 ; Label for current speed/difficulty
+    speedStr: db "00000", 0          ; Current speed display buffer
 
-    ballX: dq 250                ; Ball X position
-    ballY: dq 250                ; Ball Y position
-    ballXVel: dq 3               ; Ball X velocity
-    ballYVel: dq 3               ; Ball Y velocity
+    paddleY: dq 150                  ; Paddle Y position (X is fixed at left side)
 
-    bounces: dq 0                ; Counter for paddle hits
-    bouncesToSpeedUp: dq 3       ; Increase speed every 3 bounces
-    score: dq 0                  ; Player score
+    ballX: dq 250                    ; Ball X position
+    ballY: dq 250                    ; Ball Y position
+    ballXVel: dq 3                   ; Ball X velocity
+    ballYVel: dq 3                   ; Ball Y velocity
+
+    bounces: dq 0                    ; Counter for paddle hits
+    bouncesToSpeedUp: dq 3           ; Increase speed every 3 bounces
+    speed: dq 1                      ; Current speed
+    score: dq 0                      ; Player score
 
 section '.note.GNU-stack'
